@@ -4,6 +4,8 @@ import argparse
 import enum
 import struct
 
+import PIL.Image as Image
+
 
 Kind = enum.IntEnum('Kind', dict(
     TILES=1,
@@ -29,21 +31,46 @@ def parse_args():
     return parser.parse_args()
 
 
-def write_chunk(fout, kind, input_filename):
-    data = open(input_filename, 'rb').read()
+def write_chunk(fout, kind, data):
     size = len(data)
     fout.write(struct.pack('I', size << 8 | kind))
     fout.write(data)
+
+
+def convert_image_to_bytes(filename, yshift):
+    im = Image.open(filename)
+    im = im.crop((0,yshift,128,yshift+128))
+    w, h = im.size
+    imdata = im.getdata()
+    data = []
+    for j in range(h//8):
+        for i in range(w//8):
+            for y in range(8):
+                for x in range(4):
+                    ind = (j*8+y)*w + i*8+2*x
+                    data.append(imdata[ind] | imdata[ind+1]<<4)
+    return bytes(data)
     
 
 args = parse_args()
 with open(args.output, 'wb') as fout:
+    if args.tiles:
+        if args.tiles.endswith('.gif'):
+            data = convert_image_to_bytes(args.tiles, 0)
+        else:
+            data = open(args.tiles, 'rb').read()
+        write_chunk(fout, Kind.TILES, data)
+    if args.sprites:
+        if args.sprites.endswith('.gif'):
+            data = convert_image_to_bytes(args.sprites, 128)
+        else:
+            data = open(args.sprites, 'rb').read()
+        write_chunk(fout, Kind.SPRITES, data)
     for filename, kind in (
-        (args.tiles, Kind.TILES),
-        (args.sprites, Kind.SPRITES),
         (args.map, Kind.MAP),
         (args.code, Kind.CODE),
     ):
         if filename:
-            write_chunk(fout, kind, filename)
+            data = open(filename, 'rb').read()
+            write_chunk(fout, kind, data)
 
