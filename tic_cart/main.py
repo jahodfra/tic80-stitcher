@@ -23,10 +23,10 @@ Kind = enum.IntEnum('Kind', dict(
 
 def parse_args():
     parser = argparse.ArgumentParser(description='Build tic80 cartridge.')
-    parser.add_argument('--tiles', help='file with tiles data')
-    parser.add_argument('--sprites', help='file with sprites data')
-    parser.add_argument('--map', help='file with map data')
-    parser.add_argument('--code', help='file with code')
+    parser.add_argument('-t', '--tiles', help='file with tiles data')
+    parser.add_argument('-s', '--sprites', help='file with sprites data')
+    parser.add_argument('-m', '--map', help='file with map data')
+    parser.add_argument('-c', '--code', help='file with code')
     parser.add_argument('-o', '--output', required=True, help='output file')
     return parser.parse_args()
 
