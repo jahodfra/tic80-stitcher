@@ -39,7 +39,7 @@ def write_chunk(fout, kind, data):
 
 def convert_image_to_bytes(filename, yshift):
     im = Image.open(filename)
-    im = im.crop((0,yshift,128,yshift+128))
+    im = im.crop((0, yshift, 128, yshift+128))
     w, h = im.size
     imdata = im.getdata()
     data = []
@@ -48,29 +48,33 @@ def convert_image_to_bytes(filename, yshift):
             for y in range(8):
                 for x in range(4):
                     ind = (j*8+y)*w + i*8+2*x
-                    data.append(imdata[ind] | imdata[ind+1]<<4)
+                    data.append(imdata[ind] | imdata[ind+1] << 4)
     return bytes(data)
-    
 
-args = parse_args()
-with open(args.output, 'wb') as fout:
-    if args.tiles:
-        if args.tiles.endswith('.gif'):
-            data = convert_image_to_bytes(args.tiles, 0)
-        else:
-            data = open(args.tiles, 'rb').read()
-        write_chunk(fout, Kind.TILES, data)
-    if args.sprites:
-        if args.sprites.endswith('.gif'):
-            data = convert_image_to_bytes(args.sprites, 128)
-        else:
-            data = open(args.sprites, 'rb').read()
-        write_chunk(fout, Kind.SPRITES, data)
-    for filename, kind in (
-        (args.map, Kind.MAP),
-        (args.code, Kind.CODE),
-    ):
-        if filename:
-            data = open(filename, 'rb').read()
-            write_chunk(fout, kind, data)
 
+def main():
+    args = parse_args()
+    with open(args.output, 'wb') as fout:
+        if args.tiles:
+            if args.tiles.endswith('.gif'):
+                data = convert_image_to_bytes(args.tiles, 0)
+            else:
+                data = open(args.tiles, 'rb').read()
+            write_chunk(fout, Kind.TILES, data)
+        if args.sprites:
+            if args.sprites.endswith('.gif'):
+                data = convert_image_to_bytes(args.sprites, 128)
+            else:
+                data = open(args.sprites, 'rb').read()
+            write_chunk(fout, Kind.SPRITES, data)
+        for filename, kind in (
+            (args.map, Kind.MAP),
+            (args.code, Kind.CODE),
+        ):
+            if filename:
+                data = open(filename, 'rb').read()
+                write_chunk(fout, kind, data)
+
+
+if __name__ == '__main__':
+    exit(main())
